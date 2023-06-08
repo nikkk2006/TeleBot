@@ -1,4 +1,5 @@
 import telebot
+from telebot import types
 import webbrowser
 import qrcode
 import requests
@@ -56,7 +57,7 @@ def main():
     @bot.message_handler(commands=["start"])
     def start(message):
 
-        bot.send_message(message.chat.id, """Информация о боте:
+        info_about_bot = """Информация о боте:
 "Привет" - бот поприветствует вас
 "Пока" - бот попрощается с вами
 "id" - бот скажет ваш id
@@ -65,7 +66,13 @@ def main():
 "bitcoin" - бот покажет текущую покупку и продажу биткоина
 "Погода в '[ваш город в И.П]'"
 -Вы можете отправить боту фото/видео и он оценит 
-""")
+"""
+
+        # реализация кнопок
+        markup = types.ReplyKeyboardMarkup()
+        markup.add(types.KeyboardButton("YouTube"))
+        markup.add(types.KeyboardButton("Bitcoin"))
+        bot.reply_to(message, info_about_bot, reply_markup=markup)
 
     @bot.message_handler()
     def answers(message):
@@ -79,7 +86,7 @@ def main():
         elif message.text.lower() == "id":
             bot.reply_to(message, f"ID: {message.from_user.id}")
 
-        elif message.text.lower() == "ютуб":
+        elif message.text.lower() == "ютуб" or "YouTube":
             webbrowser.open("https://www.youtube.com/")
 
         elif message.text.lower() == "bitcoin":
