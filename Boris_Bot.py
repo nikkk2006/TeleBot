@@ -1,10 +1,12 @@
 import telebot
+from telebot import types
 import webbrowser
 import qrcode
 import requests
 from datetime import datetime
 from pyowm import OWM
 from pyowm.utils.config import get_default_config
+from currency_converter import CurrencyConverter
 
 
 def get_weather(city):
@@ -49,6 +51,43 @@ def get_data():
 
 def main():
     bot = telebot.TeleBot("6271994553:AAGJx3KkAONcDibJMaAdRgzYOw2P_YqPz-g")
+    currency = CurrencyConverter()
+    ANSWER = 0
+
+    def choose_currency(message):
+        global ANSWER
+
+        try:
+            ANSWER = int(message.text.strip())
+        except ValueError:
+            bot.send_message(message.chat.id, "Некорректный ввод. Введите сумму:")
+            bot.register_next_step_handler(message, choose_currency)
+
+            # чтобы следующий код не выполнялся
+            return
+
+        if ANSWER > 0:
+            markup = types.InlineKeyboardMarkup(row_width=2)
+            button_1 = types.InlineKeyboardButton("USD/EUR", callback_data="USD/EUR")
+            button_2 = types.InlineKeyboardButton("EUR/USD", callback_data="EUR/USD")
+            button_5 = types.InlineKeyboardButton("Другое значение", callback_data="else")
+            markup.add(button_1, button_2, button_5)
+
+            bot.send_message(message.chat.id, "Выберите пару валют", reply_markup=markup)
+        else:
+            bot.send_message(message.chat.id, "Сумма должна быть положительным числом. Введите сумму:")
+            bot.register_next_step_handler(message, choose_currency)
+
+    @bot.callback_query_handler(func=lambda call: True)
+    def callback(call):
+        values = call.data.split('/')
+        result = currency.convert(ANSWER, values[0], values[1])
+
+        value = f"""
+{datetime.now().strftime('%d/%b/%Y %H:%M')}
+Получается: {result}
+"""
+        bot.send_message(call.message.chat.id, value)          # ?????????????????????????????????????
 
     @bot.message_handler(content_types=["photo"])
     def get_photo(message):
@@ -73,6 +112,11 @@ def main():
 """
 
         bot.send_message(message.chat.id, info_about_bot)
+
+    @bot.message_handler(commands=["convert"])
+    def convert(message):
+        bot.send_message(message.chat.id, "Введите сумму:")
+        bot.register_next_step_handler(message, choose_currency)
 
     @bot.message_handler()
     def answers(message):
