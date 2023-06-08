@@ -68,11 +68,7 @@ def main():
 -Вы можете отправить боту фото/видео и он оценит 
 """
 
-        # реализация кнопок
-        markup = types.ReplyKeyboardMarkup()
-        markup.add(types.KeyboardButton("YouTube"))
-        markup.add(types.KeyboardButton("Bitcoin"))
-        bot.reply_to(message, info_about_bot, reply_markup=markup)
+        bot.send_message(message.chat.id, info_about_bot)
 
     @bot.message_handler()
     def answers(message):
@@ -86,7 +82,7 @@ def main():
         elif message.text.lower() == "id":
             bot.reply_to(message, f"ID: {message.from_user.id}")
 
-        elif message.text.lower() == "ютуб" or "YouTube":
+        elif message.text.lower() == "ютуб":
             webbrowser.open("https://www.youtube.com/")
 
         elif message.text.lower() == "bitcoin":
