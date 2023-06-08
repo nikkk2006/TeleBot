@@ -1,5 +1,4 @@
 import telebot
-from telebot import types
 import webbrowser
 import qrcode
 import requests
@@ -16,10 +15,12 @@ def get_weather(city):
     owm = OWM('23232775d430e5fe2ac9a9c2cbdb8410', language)
 
     manager = owm.weather_manager()
-    place = manager.weather_at_place(city)
 
-    weather = place.weather
-    result_of_weather = f"""
+    try:
+        place = manager.weather_at_place(city)
+
+        weather = place.weather
+        result_of_weather = f"""
 Сейчас на улице: {weather.detailed_status}
 Облачность: {weather.clouds}%
 Текущая температура: {weather.temperature("celsius").get("temp")} градусов
@@ -28,6 +29,9 @@ def get_weather(city):
 Сейчас ощущается: {weather.temperature("celsius").get("feels_like")} градусов  
 Скорость ветра: {weather.wind()["speed"]}м/c
 """
+    except:
+        return "Некорректный ввод города(("
+
 
     return result_of_weather
 
