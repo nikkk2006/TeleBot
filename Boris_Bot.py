@@ -49,6 +49,10 @@ def main():
     def get_photo(message):
         bot.reply_to(message, "Какое красивое фото!")
 
+    @bot.message_handler(content_types=["video"])
+    def get_video(message):
+        bot.reply_to(message, "Какое красивое видео!")
+
     @bot.message_handler(commands=["start"])
     def start(message):
 
@@ -60,11 +64,12 @@ def main():
 "qrcode: [ваш текст]" - сгенерирует из текста QRCode
 "bitcoin" - бот покажет текущую покупку и продажу биткоина
 "Погода в '[ваш город в И.П]'"
--Вы можете отправить боту фото и он оценит 
+-Вы можете отправить боту фото/видео и он оценит 
 """)
 
     @bot.message_handler()
     def answers(message):
+
         if message.text.lower() == "привет":
             bot.send_message(message.chat.id, f"Привет, {message.from_user.first_name}!")
 
