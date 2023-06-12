@@ -38,6 +38,13 @@ def main():
     currency = CurrencyConverter()
     ANSWER = 0                                                                                 # ???????????????????????
 
+    def get_qrcode(message):
+        image = qrcode.make(message.text)
+        image.save("myqrcode.png")
+
+        with open("myqrcode.png", "rb") as file:
+            bot.send_photo(message.chat.id, file)
+
     def get_weather(message):
         """Функция возвращает погоду в городе"""
 
@@ -118,7 +125,7 @@ def main():
 "Пока" - бот попрощается с вами
 "id" - бот скажет ваш id
 "Ютуб" - откроет ютуб в браузере
-"qrcode: [ваш текст]" - сгенерирует из текста QRCode
+"qrcode" - сгенерирует из текста QRCode
 "bitcoin" - бот покажет текущую покупку и продажу биткоина
 "Погода" - бот спросит город для показа погоды
 "Анекдот" - бот расскажет анекдот
@@ -159,12 +166,9 @@ def main():
             bot.send_message(message.chat.id, joke)
 
         # реализация qrcode
-        elif message.text.lower().startswith("qrcode: "):
-            image = qrcode.make(message.text[8:])
-            image.save("myqrcode.png")
-
-            with open("myqrcode.png", "rb") as file:
-                bot.send_photo(message.chat.id, file)
+        elif message.text.lower() == "qrcode":
+            bot.send_message(message.chat.id, "Введите текст для конвертации в qrcode:")
+            bot.register_next_step_handler(message, get_qrcode)
 
         else:
             bot.send_message(message.chat.id, "Я не знаю такой команды😞")
