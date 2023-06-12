@@ -3,39 +3,23 @@ from telebot import types
 import webbrowser
 import qrcode
 import requests
+from bs4 import BeautifulSoup
+import random
 from datetime import datetime
 from pyowm import OWM
 from pyowm.utils.config import get_default_config
 from currency_converter import CurrencyConverter
 
 
-def get_weather(city):
-    """Функция возвращает погоду в городе"""
+def get_joke():
+    URL = "https://www.anekdot.ru/last/good/"
 
-    language = get_default_config()
-    language["language"] = "ru"
-    owm = OWM('23232775d430e5fe2ac9a9c2cbdb8410', language)
+    request = requests.get(URL)
+    soup = BeautifulSoup(request.text, "html.parser")
+    jokes = soup.find_all("div", class_="text")
+    clear_jokes = [joke.text for joke in jokes]
 
-    manager = owm.weather_manager()
-
-    try:
-        place = manager.weather_at_place(city)
-
-        weather = place.weather
-        result_of_weather = f"""
-Сейчас на улице: {weather.detailed_status}
-Облачность: {weather.clouds}%
-Текущая температура: {weather.temperature("celsius").get("temp")} градусов
-Максимальная температура: {weather.temperature("celsius").get("temp_max")} градусов
-Минимальная температура: {weather.temperature("celsius").get("temp_min")} градусов
-Сейчас ощущается: {weather.temperature("celsius").get("feels_like")} градусов  
-Скорость ветра: {weather.wind()["speed"]}м/c
-"""
-    except:
-        return "Некорректный ввод города(("
-
-
-    return result_of_weather
+    return clear_jokes
 
 def get_data():
     """Функция возвращает цена покупки и продажи битка"""
@@ -52,7 +36,36 @@ def get_data():
 def main():
     bot = telebot.TeleBot("6271994553:AAGJx3KkAONcDibJMaAdRgzYOw2P_YqPz-g")
     currency = CurrencyConverter()
-    ANSWER = 0
+    ANSWER = 0                                                                                 # ???????????????????????
+
+    def get_weather(message):
+        """Функция возвращает погоду в городе"""
+
+        language = get_default_config()
+        language["language"] = "ru"
+        owm = OWM('23232775d430e5fe2ac9a9c2cbdb8410', language)
+
+        manager = owm.weather_manager()
+
+        try:
+            city = message.text
+            place = manager.weather_at_place(city)
+
+            weather = place.weather
+            result_of_weather = f"""
+Сейчас на улице: {weather.detailed_status}
+Облачность: {weather.clouds}%
+Текущая температура: {weather.temperature("celsius").get("temp")} градусов
+Максимальная температура: {weather.temperature("celsius").get("temp_max")} градусов
+Минимальная температура: {weather.temperature("celsius").get("temp_min")} градусов
+Сейчас ощущается: {weather.temperature("celsius").get("feels_like")} градусов
+Скорость ветра: {weather.wind()["speed"]}м/c
+    """
+            bot.send_message(message.chat.id, result_of_weather)
+
+        except:
+            bot.send_message(message.chat.id, "Некорректный ввод города((\nВведите город")
+            bot.register_next_step_handler(message, get_weather)
 
     def choose_currency(message):
         global ANSWER
@@ -70,8 +83,8 @@ def main():
             markup = types.InlineKeyboardMarkup(row_width=2)
             button_1 = types.InlineKeyboardButton("USD/EUR", callback_data="USD/EUR")
             button_2 = types.InlineKeyboardButton("EUR/USD", callback_data="EUR/USD")
-            button_5 = types.InlineKeyboardButton("Другое значение", callback_data="else")
-            markup.add(button_1, button_2, button_5)
+            button_3 = types.InlineKeyboardButton("Другое значение", callback_data="else")
+            markup.add(button_1, button_2, button_3)
 
             bot.send_message(message.chat.id, "Выберите пару валют", reply_markup=markup)
         else:
@@ -87,7 +100,7 @@ def main():
 {datetime.now().strftime('%d/%b/%Y %H:%M')}
 Получается: {result}
 """
-        bot.send_message(call.message.chat.id, value)          # ?????????????????????????????????????
+        bot.send_message(call.message.chat.id, value)                            # ?????????????????????????????????????
 
     @bot.message_handler(content_types=["photo"])
     def get_photo(message):
@@ -107,7 +120,8 @@ def main():
 "Ютуб" - откроет ютуб в браузере
 "qrcode: [ваш текст]" - сгенерирует из текста QRCode
 "bitcoin" - бот покажет текущую покупку и продажу биткоина
-"Погода в '[ваш город в И.П]'"
+"Погода" - бот спросит город для показа погоды
+"Анекдот" - бот расскажет анекдот
 -Вы можете отправить боту фото/видео и он оценит 
 """
 
@@ -136,14 +150,13 @@ def main():
         elif message.text.lower() == "bitcoin":
             bot.send_message(message.chat.id, get_data())
 
-        elif message.text.lower().startswith("погода в "):
-            index_left_quote = message.text.find("'")
-            index_right_quote = message.text.rfind("'")
+        elif message.text.lower() == "погода":
+            bot.send_message(message.chat.id, "Введите город:")
+            bot.register_next_step_handler(message, get_weather)
 
-            city = message.text[index_left_quote + 1:index_right_quote]
-
-            weather = get_weather(city)
-            bot.send_message(message.chat.id, weather)
+        elif message.text.lower() == "анекдот":
+            joke = random.choice(get_joke())
+            bot.send_message(message.chat.id, joke)
 
         # реализация qrcode
         elif message.text.lower().startswith("qrcode: "):
