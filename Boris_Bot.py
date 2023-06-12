@@ -100,14 +100,31 @@ def main():
 
     @bot.callback_query_handler(func=lambda call: True)
     def callback(call):
-        values = call.data.split('/')
-        result = currency.convert(ANSWER, values[0], values[1])
 
-        value = f"""
-{datetime.now().strftime('%d/%b/%Y %H:%M')}
-Получается: {round(result, 2)}
-"""
-        bot.send_message(call.message.chat.id, value)
+        if call.data != "else":
+            values = call.data.split('/')
+            result = currency.convert(ANSWER, values[0], values[1])
+
+            value = f"""
+            {datetime.now().strftime('%d/%b/%Y %H:%M')}
+            Получается: {round(result, 2)}
+            """
+            bot.send_message(call.message.chat.id, value)
+        else:
+            bot.send_message(call.message.chat.id, "Введите пару валют через слэш:")
+            bot.register_next_step_handler(call.message, my_currency)
+
+    def my_currency(message):
+
+        try:
+            values = message.text.upper().split("/")
+            result = currency.convert(ANSWER, values[0], values[1])
+
+            value = f"{datetime.now().strftime('%d/%b/%Y %H:%M')}\nПолучается: {round(result, 2)}"
+            bot.send_message(message.chat.id, value)
+        except:
+            bot.send_message(message.chat.id, "Некорректный ввод. Введите пару валют через слэш:")
+            bot.register_next_step_handler(message, my_currency)
 
     @bot.message_handler(content_types=["photo"])
     def get_photo(message):
