@@ -12,6 +12,7 @@ from currency_converter import CurrencyConverter
 
 
 def get_joke():
+    """Функция, которая возвращает список из шуток"""
     URL = "https://www.anekdot.ru/last/good/"
 
     request = requests.get(URL)
@@ -22,7 +23,7 @@ def get_joke():
     return clear_jokes
 
 def get_data():
-    """Функция возвращает цена покупки и продажи битка"""
+    """Функция, которая возвращает цену покупки и продажи битка"""
 
     request = requests.get("https://yobit.net/api/3/ticker/btc_usd")
     response = request.json()
@@ -36,7 +37,6 @@ def get_data():
 def main():
     bot = telebot.TeleBot("6271994553:AAGJx3KkAONcDibJMaAdRgzYOw2P_YqPz-g")
     currency = CurrencyConverter()
-    ANSWER = 0                                                                                 # ???????????????????????
 
     def get_qrcode(message):
         image = qrcode.make(message.text)
@@ -105,9 +105,9 @@ def main():
 
         value = f"""
 {datetime.now().strftime('%d/%b/%Y %H:%M')}
-Получается: {result}
+Получается: {round(result, 2)}
 """
-        bot.send_message(call.message.chat.id, value)                            # ?????????????????????????????????????
+        bot.send_message(call.message.chat.id, value)
 
     @bot.message_handler(content_types=["photo"])
     def get_photo(message):
@@ -124,6 +124,7 @@ def main():
 "Привет" - бот поприветствует вас
 "Пока" - бот попрощается с вами
 "id" - бот скажет ваш id
+"convert" - бот с конвертирует валюту
 "Ютуб" - откроет ютуб в браузере
 "qrcode" - сгенерирует из текста QRCode
 "bitcoin" - бот покажет текущую покупку и продажу биткоина
@@ -133,11 +134,6 @@ def main():
 """
 
         bot.send_message(message.chat.id, info_about_bot)
-
-    @bot.message_handler(commands=["convert"])
-    def convert(message):
-        bot.send_message(message.chat.id, "Введите сумму:")
-        bot.register_next_step_handler(message, choose_currency)
 
     @bot.message_handler()
     def answers(message):
@@ -164,6 +160,10 @@ def main():
         elif message.text.lower() == "анекдот":
             joke = random.choice(get_joke())
             bot.send_message(message.chat.id, joke)
+
+        elif message.text.lower() == "convert":
+            bot.send_message(message.chat.id, "Введите сумму:")
+            bot.register_next_step_handler(message, choose_currency)
 
         # реализация qrcode
         elif message.text.lower() == "qrcode":
