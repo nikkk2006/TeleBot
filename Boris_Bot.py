@@ -11,6 +11,9 @@ from pyowm.utils.config import get_default_config
 from currency_converter import CurrencyConverter
 
 
+def get_now_date():
+    return datetime.now().strftime(f'%d/%b/%Y %H:%M')
+
 def get_joke():
     """Функция, которая возвращает список из шуток"""
     URL = "https://www.anekdot.ru/last/good/"
@@ -32,7 +35,7 @@ def get_data():
     sell_price = round(response["btc_usd"]["sell"], 2)
     buy_price = round(response["btc_usd"]["buy"], 2)
 
-    return f"{datetime.now().strftime('%d/%b/%Y %H:%M')}\nSell price: {sell_price}\nBuy price: {buy_price}"
+    return f"{get_now_date()}\nSell price: {sell_price}\nBuy price: {buy_price}"
 
 def main():
     bot = telebot.TeleBot("6271994553:AAGJx3KkAONcDibJMaAdRgzYOw2P_YqPz-g")
@@ -106,7 +109,7 @@ def main():
             result = currency.convert(ANSWER, values[0], values[1])
 
             value = f"""
-            {datetime.now().strftime('%d/%b/%Y %H:%M')}
+            {get_now_date()}
             Получается: {round(result, 2)}
             """
             bot.send_message(call.message.chat.id, value)
@@ -120,7 +123,7 @@ def main():
             values = message.text.upper().split("/")
             result = currency.convert(ANSWER, values[0], values[1])
 
-            value = f"{datetime.now().strftime('%d/%b/%Y %H:%M')}\nПолучается: {round(result, 2)}"
+            value = f"{get_now_date()}\nПолучается: {round(result, 2)}"
             bot.send_message(message.chat.id, value)
         except:
             bot.send_message(message.chat.id, "Некорректный ввод. Введите пару валют через слэш:")
@@ -147,6 +150,7 @@ def main():
 "bitcoin" - бот покажет текущую покупку и продажу биткоина
 "Погода" - бот спросит город для показа погоды
 "Анекдот" - бот расскажет анекдот
+"Дата" - бот скажет точную дату
 -Вы можете отправить боту фото/видео и он оценит 
 """
 
@@ -181,6 +185,9 @@ def main():
         elif message.text.lower() == "convert":
             bot.send_message(message.chat.id, "Введите сумму:")
             bot.register_next_step_handler(message, choose_currency)
+
+        elif message.text.lower() == "дата":
+            bot.send_message(message.chat.id, get_now_date())
 
         # реализация qrcode
         elif message.text.lower() == "qrcode":
